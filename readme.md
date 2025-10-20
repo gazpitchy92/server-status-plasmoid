@@ -1,4 +1,4 @@
-aaaaaaaaaaaaaaaaaaaa# Server Status Plasmoid
+# Server Status Plasmoid
 
 A KDE Plasma 6 widget that displays a list of servers and their current status.  
 Supports **Ping** and **HTTP/S** checks for real-time monitoring directly from your desktop.
