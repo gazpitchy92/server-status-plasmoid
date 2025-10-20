@@ -63,9 +63,11 @@ PlasmoidItem {
                 Item { Layout.fillWidth: true }
                 
                 QQC2.Button {
-                    text: "Refresh"
                     icon.name: "view-refresh"
+                    flat: true
                     onClicked: checkAllServers()
+                    QQC2.ToolTip.text: "Refresh"
+                    QQC2.ToolTip.visible: hovered
                 }
             }
             
