@@ -18,6 +18,8 @@ PlasmoidItem {
     // Read configuration
     property string configServerList: Plasmoid.configuration.serverList
     property int pingInterval: Plasmoid.configuration.pingInterval
+    property bool showTitle: Plasmoid.configuration.showTitle
+    property bool showRefreshButton: Plasmoid.configuration.showRefreshButton
     
     // Compact representation (shows count)
     compactRepresentation: Item {
@@ -205,6 +207,10 @@ PlasmoidItem {
         connectedSources: []
         
         onNewData: function(source, data) {
+            console.log("onNewData - source:", source)
+            console.log("onNewData - exit code:", data["exit code"])
+            console.log("onNewData - stdout:", data["stdout"])
+            
             var exitCode = data["exit code"]
             
             // Determine if this is a ping or curl command and extract the identifier
@@ -213,6 +219,7 @@ PlasmoidItem {
             if (source.startsWith("ping")) {
                 var parts = source.split(" ")
                 serverIdentifier = parts[parts.length - 1] // Get IP address
+                console.log("Ping command, extracted IP:", serverIdentifier)
             } else if (source.startsWith("curl")) {
                 // Extract URL from: curl -s -o /dev/null -w "%{http_code}" -m 5 URL
                 var urlMatch = source.match(/curl.*["']([^"']+)["']/)
@@ -223,13 +230,18 @@ PlasmoidItem {
                     var curlParts = source.split(" ")
                     serverIdentifier = curlParts[curlParts.length - 1]
                 }
+                console.log("Curl command, extracted URL:", serverIdentifier)
             }
+            
+            console.log("Looking for server with address:", serverIdentifier)
+            console.log("Current servers:", JSON.stringify(servers))
             
             // Find and update the server with this address
             var newServers = servers.slice()
             var found = false
             
             for (var i = 0; i < newServers.length; i++) {
+                console.log("Checking server", i, "address:", newServers[i].address)
                 if (newServers[i].address === serverIdentifier) {
                     // For HTTP/S, check both exit code and response
                     if (newServers[i].method === "HTTP/S") {
@@ -241,9 +253,14 @@ PlasmoidItem {
                         // For Ping, just check exit code
                         newServers[i].status = (exitCode === 0) ? "UP" : "DOWN"
                     }
+                    console.log("Updated server", i, "to status:", newServers[i].status)
                     found = true
                     break
                 }
+            }
+            
+            if (!found) {
+                console.log("WARNING: No matching server found for address:", serverIdentifier)
             }
             
             if (found) {

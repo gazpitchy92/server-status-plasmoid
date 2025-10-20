@@ -12,5 +12,11 @@
     <entry name="pingInterval" type="Int">
       <default>5</default>
     </entry>
+    <entry name="showTitle" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="showRefreshButton" type="Bool">
+      <default>true</default>
+    </entry>
   </group>
 </kcfg>
