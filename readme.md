@@ -21,4 +21,4 @@ Supports **Ping**, **DNS**, and **HTTP/S** checks for real-time monitoring direc
 ```bash
 git clone https://github.com/gazpitchy92/server-status-plasmoid.git
 cd server-status-plasmoid
-kpackagetool6 --type Plasma/Applet -u ./
+kpackagetool6 --type Plasma/Applet -i ./
