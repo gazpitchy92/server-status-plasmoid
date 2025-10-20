@@ -9,6 +9,8 @@ KCM.SimpleKCM {
     
     property alias cfg_serverList: serverListField.text
     property alias cfg_pingInterval: pingIntervalSpinBox.value
+    property alias cfg_showTitle: showTitleCheckBox.checked
+    property alias cfg_showRefreshButton: showRefreshButtonCheckBox.checked
     
     property var servers: []
     
@@ -23,6 +25,17 @@ KCM.SimpleKCM {
                 to: 60
                 value: 5
                 Kirigami.FormData.label: "Update Interval (seconds):"
+            }
+            
+            QQC2.CheckBox {
+                id: showTitleCheckBox
+                text: "Show Title"
+                Kirigami.FormData.label: "Display:"
+            }
+            
+            QQC2.CheckBox {
+                id: showRefreshButtonCheckBox
+                text: "Show Refresh Button"
             }
         }
         
