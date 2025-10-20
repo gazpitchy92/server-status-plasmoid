@@ -78,7 +78,7 @@ PlasmoidItem {
                 ListView {
                     id: serverListView
                     model: servers
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.largeSpacing
                     clip: true
 
                     delegate: Rectangle {
