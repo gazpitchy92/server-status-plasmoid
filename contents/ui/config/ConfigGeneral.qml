@@ -15,21 +15,14 @@ KCM.SimpleKCM {
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
         
-        // Ping Interval Section
+        // Update Interval Section
         Kirigami.FormLayout {
-            RowLayout {
-                Kirigami.FormData.label: "Update Interval:"
-                
-                QQC2.SpinBox {
-                    id: pingIntervalSpinBox
-                    from: 1
-                    to: 60
-                    value: 5
-                }
-                
-                QQC2.Label {
-                    text: "seconds"
-                }
+            QQC2.SpinBox {
+                id: pingIntervalSpinBox
+                from: 1
+                to: 60
+                value: 5
+                Kirigami.FormData.label: "Update Interval (seconds):"
             }
         }
         
@@ -129,6 +122,10 @@ KCM.SimpleKCM {
                                     }
                                 }
                                 
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+                                
                                 QQC2.Button {
                                     icon.name: "delete"
                                     text: "Remove"
@@ -157,10 +154,6 @@ KCM.SimpleKCM {
     
     Component.onCompleted: {
         loadServers()
-    }
-    
-    onServersChanged: {
-        saveServers()
     }
     
     function loadServers() {
@@ -199,11 +192,13 @@ KCM.SimpleKCM {
             address: address
         })
         servers = newServers
+        saveServers()
     }
     
     function removeServer(index) {
         var newServers = servers.slice()
         newServers.splice(index, 1)
         servers = newServers
+        saveServers()
     }
 }
