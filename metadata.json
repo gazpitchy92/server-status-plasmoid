@@ -7,7 +7,7 @@
             }
         ],
         "Category": "Utilities",
-        "Description": "A server monitoring plasmoid",
+        "Description": "A server status plasmoid",
         "Icon": "preferences-desktop-plasma",
         "Id": "com.gazpitchy.server",
         "Name": "Server Status",

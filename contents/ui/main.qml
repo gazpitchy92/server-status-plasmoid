@@ -59,7 +59,7 @@ PlasmoidItem {
                 visible: showTitle || showRefreshButton
                 
                 Kirigami.Heading {
-                    text: "Server Monitor"
+                    text: "Server Status"
                     level: 3
                     visible: showTitle
                 }
