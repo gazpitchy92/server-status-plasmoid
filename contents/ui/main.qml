@@ -12,10 +12,9 @@ PlasmoidItem {
     width: Kirigami.Units.gridUnit * 15
     height: Kirigami.Units.gridUnit * 10
     
-    // Store server list with status
+    // Servers array
     property var servers: []
-    
-    // Read configuration
+    // Configs
     property string configServerList: Plasmoid.configuration.serverList
     property int pingInterval: Plasmoid.configuration.pingInterval
     property bool showTitle: Plasmoid.configuration.showTitle
@@ -26,14 +25,12 @@ PlasmoidItem {
         Column {
             anchors.centerIn: parent
             spacing: 4
-            
             Kirigami.Icon {
                 source: "network-server"
                 width: Kirigami.Units.iconSizes.medium
                 height: width
                 anchors.horizontalCenter: parent.horizontalCenter
             }
-            
             Text {
                 text: servers.length + " servers"
                 font.pixelSize: 10
@@ -57,15 +54,12 @@ PlasmoidItem {
             RowLayout {
                 Layout.fillWidth: true
                 visible: showTitle || showRefreshButton
-                
                 Kirigami.Heading {
                     text: "Server Status"
                     level: 3
                     visible: showTitle
                 }
-                
                 Item { Layout.fillWidth: true }
-                
                 QQC2.Button {
                     icon.name: "view-refresh"
                     flat: true
@@ -80,13 +74,13 @@ PlasmoidItem {
             QQC2.ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                
+
                 ListView {
                     id: serverListView
                     model: servers
                     spacing: Kirigami.Units.smallSpacing
                     clip: true
-                    
+
                     delegate: Rectangle {
                         width: serverListView.width
                         height: 60
@@ -94,12 +88,12 @@ PlasmoidItem {
                             modelData.status === "⟷ CHECKING..." ? Qt.darker(Kirigami.Theme.backgroundColor, 1.3) : 
                             Kirigami.Theme.backgroundColor
                         radius: 4
-                        
+
                         RowLayout {
                             anchors.fill: parent
                             anchors.margins: Kirigami.Units.largeSpacing
                             spacing: Kirigami.Units.largeSpacing
-                            
+                    
                             // Status indicator
                             Rectangle {
                                 width: 12
@@ -109,8 +103,6 @@ PlasmoidItem {
                                     modelData.status === "⟱ DOWN"? "#f44336" : 
                                     "#ff9800"
                                 Layout.alignment: Qt.AlignVCenter
-
-                                // Breathing animation for DOWN servers
                                 SequentialAnimation on opacity {
                                     running: modelData.status === "⟱ DOWN"
                                     loops: Animation.Infinite
@@ -134,7 +126,6 @@ PlasmoidItem {
                                 Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 2
-                                
                                 Text {
                                     text: modelData.name
                                     font.bold: true
@@ -142,7 +133,6 @@ PlasmoidItem {
                                     color: Kirigami.Theme.textColor
                                     Layout.fillWidth: true
                                 }
-                                
                                 RowLayout {
                                     spacing: Kirigami.Units.smallSpacing
                                     
@@ -151,7 +141,6 @@ PlasmoidItem {
                                         font.pixelSize: 10
                                         color: Kirigami.Theme.disabledTextColor
                                     }
-                                    
                                     Text {
                                         text: modelData.address
                                         font.pixelSize: 12
@@ -173,6 +162,7 @@ PlasmoidItem {
                                 Layout.preferredWidth: 80
                                 Layout.alignment: Qt.AlignVCenter
                             }
+
                         }
                     }
                 }
@@ -183,11 +173,9 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 visible: servers.length === 0
-                
                 Column {
                     anchors.centerIn: parent
                     spacing: Kirigami.Units.largeSpacing
-                    
                     Kirigami.Icon {
                         source: "network-server"
                         width: Kirigami.Units.iconSizes.huge
@@ -195,13 +183,11 @@ PlasmoidItem {
                         anchors.horizontalCenter: parent.horizontalCenter
                         opacity: 0.3
                     }
-                    
                     Text {
                         text: "No servers configured"
                         color: Kirigami.Theme.disabledTextColor
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
-                    
                     QQC2.Button {
                         text: "Open Settings"
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -231,17 +217,17 @@ PlasmoidItem {
             console.log("onNewData - source:", source)
             console.log("onNewData - exit code:", data["exit code"])
             console.log("onNewData - stdout:", data["stdout"])
-            
             var exitCode = data["exit code"]
             var serverIdentifier = ""
-            
+
+            // Check status
             if (source.startsWith("ping")) {
-                // Check for ping command
+                // PING
                 var parts = source.split(" ")
                 serverIdentifier = parts[parts.length - 1] // Get IP address
                 console.log("Ping command, extracted IP:", serverIdentifier)
             } else if (source.startsWith("curl")) {
-                // Check for HTTPS command
+                // HTTP Curl
                 var urlMatch = source.match(/curl.*["']([^"']+)["']/)
                 if (urlMatch) {
                     serverIdentifier = urlMatch[1]
@@ -251,11 +237,10 @@ PlasmoidItem {
                 }
                 console.log("Curl command, extracted URL:", serverIdentifier)
             }
-            
             console.log("Looking for server with address:", serverIdentifier)
             console.log("Current servers:", JSON.stringify(servers))
             
-            // Find and update the server with this address
+            // Update the UI with the status 
             var newServers = servers.slice()
             var found = false
             for (var i = 0; i < newServers.length; i++) {
@@ -273,36 +258,32 @@ PlasmoidItem {
                     break
                 }
             }
-            
+
             if (!found) {
                 console.log("WARNING: No matching server found for address:", serverIdentifier)
             }
-            
             if (found) {
                 servers = newServers
             }
-            
-            // Disconnect the source after getting data
             executable.disconnectSource(source)
         }
     }
     
-    // Watch for configuration changes
+    // Cleanup UI 
     onConfigServerListChanged: {
-        // Disconnect all existing sources
         var sources = executable.connectedSources
         for (var i = 0; i < sources.length; i++) {
             executable.disconnectSource(sources[i])
         }
-        
         loadServers()
     }
     
+    // Timer
     onPingIntervalChanged: {
         pingTimer.interval = pingInterval * 1000
     }
     
-    // Functions
+    // Loading config
     function loadServers() {
         console.log("Loading servers from config:", configServerList)
         try {
@@ -314,12 +295,9 @@ PlasmoidItem {
                 for (var i = 0; i < configServers.length; i++) {
                     var server = configServers[i]
                     console.log("Processing server:", JSON.stringify(server))
-                    // Handle both old format (ip) and new format (address)
                     var address = server.address || server.ip || ""
                     var method = server.method || "Ping"
-                    
                     console.log("Server name:", server.name, "method:", method, "address:", address)
-                    
                     newServers.push({
                         name: server.name,
                         method: method,
@@ -327,7 +305,6 @@ PlasmoidItem {
                         status: "⟷ CHECKING..."
                     })
                 }
-                
                 servers = newServers
                 checkAllServers()
             } else {
@@ -339,6 +316,7 @@ PlasmoidItem {
         }
     }
     
+    // Check server status function
     function checkServer(method, address) {
         console.log("checkServer called with method:", method, "address:", address)
         if (method === "Ping") {
@@ -352,6 +330,7 @@ PlasmoidItem {
         }
     }
     
+    // Trigger full update
     function checkAllServers() {
         for (var i = 0; i < servers.length; i++) {
             checkServer(servers[i].method, servers[i].address)
