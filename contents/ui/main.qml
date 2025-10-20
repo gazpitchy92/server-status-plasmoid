@@ -84,13 +84,15 @@ PlasmoidItem {
                 ListView {
                     id: serverListView
                     model: servers
-                    spacing: Kirigami.Units.largeSpacing
+                    spacing: Kirigami.Units.smallSpacing
                     clip: true
                     
                     delegate: Rectangle {
                         width: serverListView.width
                         height: 60
-                        color: Kirigami.Theme.backgroundColor
+                        color: modelData.status === "⟱ DOWN" ? Qt.darker(Kirigami.Theme.backgroundColor, 1.8) : 
+                            modelData.status === "⟷ CHECKING..." ? Qt.darker(Kirigami.Theme.backgroundColor, 1.3) : 
+                            Kirigami.Theme.backgroundColor
                         radius: 4
                         
                         RowLayout {
@@ -103,10 +105,28 @@ PlasmoidItem {
                                 width: 12
                                 height: 12
                                 radius: 6
-                                color: modelData.status === "UP" ? "#4caf50" : 
-                                       modelData.status === "DOWN" ? "#f44336" : 
-                                       "#ff9800"
+                                color: modelData.status === "⟰ UP" ? "#4caf50" : 
+                                    modelData.status === "⟱ DOWN"? "#f44336" : 
+                                    "#ff9800"
                                 Layout.alignment: Qt.AlignVCenter
+
+                                // Breathing animation for DOWN servers
+                                SequentialAnimation on opacity {
+                                    running: modelData.status === "⟱ DOWN"
+                                    loops: Animation.Infinite
+                                    NumberAnimation { 
+                                        from: 0.3; 
+                                        to: 1.0; 
+                                        duration: 1200; 
+                                        easing.type: Easing.InOutQuad 
+                                    }
+                                    NumberAnimation { 
+                                        from: 1.0; 
+                                        to: 0.3; 
+                                        duration: 1200; 
+                                        easing.type: Easing.InOutQuad 
+                                    }
+                                }
                             }
                             
                             // Server info
@@ -146,8 +166,8 @@ PlasmoidItem {
                                 text: modelData.status
                                 font.bold: true
                                 font.pixelSize: 14
-                                color: modelData.status === "UP" ? "#4caf50" : 
-                                       modelData.status === "DOWN" ? "#f44336" : 
+                                color: modelData.status === "⟰ UP" ? "#4caf50" : 
+                                       modelData.status === "⟱ DOWN"? "#f44336" : 
                                        "#ff9800"
                                 horizontalAlignment: Text.AlignRight
                                 Layout.preferredWidth: 80
@@ -244,9 +264,9 @@ PlasmoidItem {
                     if (newServers[i].method === "HTTP/S") {
                         var stdout = data["stdout"] || ""
                         var httpCode = parseInt(stdout.trim())
-                        newServers[i].status = (exitCode === 0 && httpCode >= 200 && httpCode < 400) ? "UP" : "DOWN"
+                        newServers[i].status = (exitCode === 0 && httpCode >= 200 && httpCode < 400) ? "⟰ UP" : "⟱ DOWN"
                     } else {
-                        newServers[i].status = (exitCode === 0) ? "UP" : "DOWN"
+                        newServers[i].status = (exitCode === 0) ? "⟰ UP" : "⟱ DOWN"
                     }
                     console.log("Updated server", i, "to status:", newServers[i].status)
                     found = true
@@ -304,7 +324,7 @@ PlasmoidItem {
                         name: server.name,
                         method: method,
                         address: address,
-                        status: "CHECKING..."
+                        status: "⟷ CHECKING..."
                     })
                 }
                 
