@@ -56,10 +56,12 @@ PlasmoidItem {
             // Header
             RowLayout {
                 Layout.fillWidth: true
+                visible: showTitle || showRefreshButton
                 
                 Kirigami.Heading {
                     text: "Server Monitor"
                     level: 3
+                    visible: showTitle
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -67,6 +69,7 @@ PlasmoidItem {
                 QQC2.Button {
                     icon.name: "view-refresh"
                     flat: true
+                    visible: showRefreshButton
                     onClicked: checkAllServers()
                     QQC2.ToolTip.text: "Refresh"
                     QQC2.ToolTip.visible: hovered
