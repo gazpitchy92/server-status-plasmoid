@@ -9,7 +9,7 @@ Supports **Ping** and **HTTP/S** checks for real-time monitoring directly from y
 
 ## Features
 - Display multiple servers in a clean, responsive layout  
-- Supports Ping, DNS, and HTTP/S checks  
+- Supports Ping and HTTP/S checks  
 - Color-coded status indicators for quick overview  
 - Configurable refresh intervals  
 - Lightweight and built with Plasma 6 compatibility in mind  
