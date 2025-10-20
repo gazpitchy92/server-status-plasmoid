@@ -3,7 +3,7 @@
 A KDE Plasma 6 widget that displays a list of servers and their current status.  
 Supports **Ping**, **DNS**, and **HTTP/S** checks for real-time monitoring directly from your desktop.
 
-![Server Status Plasmoid](https://i.postimg.cc/qvRfHrsR/server.png)
+![Server Status Plasmoid](https://i.postimg.cc/FFB3VgTp/server.png)
 
 ---
 
