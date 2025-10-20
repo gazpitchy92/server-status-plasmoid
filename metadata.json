@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "garethpitchford1992@gmail.com",
+                "Name": "Gareth Pitchford"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "A server monitoring plasmoid",
+        "Icon": "preferences-desktop-plasma",
+        "Id": "com.gazpitchy.server",
+        "Name": "Server Status",
+        "Version": "1.0",
+        "Website": "https://gpitchford.com",
+        "EnabledByDefault": true
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-MainScript": "ui/main.qml"
+}
