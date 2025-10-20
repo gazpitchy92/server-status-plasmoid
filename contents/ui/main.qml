@@ -91,8 +91,6 @@ PlasmoidItem {
                         width: serverListView.width
                         height: 60
                         color: Kirigami.Theme.backgroundColor
-                        border.color: Kirigami.Theme.disabledTextColor
-                        border.width: 1
                         radius: 4
                         
                         RowLayout {
