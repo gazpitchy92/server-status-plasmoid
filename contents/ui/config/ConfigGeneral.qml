@@ -18,7 +18,7 @@ KCM.SimpleKCM {
         // Ping Interval Section
         Kirigami.FormLayout {
             RowLayout {
-                Kirigami.FormData.label: "Ping Interval:"
+                Kirigami.FormData.label: "Update Interval:"
                 
                 QQC2.SpinBox {
                     id: pingIntervalSpinBox
@@ -54,20 +54,30 @@ KCM.SimpleKCM {
                         placeholderText: "Server Name (e.g., Web Server)"
                     }
                     
+                    QQC2.ComboBox {
+                        id: newServerMethod
+                        Layout.preferredWidth: 100
+                        model: ["Ping", "HTTP/S"]
+                        currentIndex: 0
+                    }
+                    
                     QQC2.TextField {
-                        id: newServerIp
+                        id: newServerAddress
                         Layout.fillWidth: true
-                        placeholderText: "IP Address (e.g., 192.168.1.1)"
+                        placeholderText: newServerMethod.currentText === "Ping" ? 
+                                       "IP Address (e.g., 192.168.1.1)" : 
+                                       "URL (e.g., https://example.com)"
                     }
                     
                     QQC2.Button {
                         text: "Add Server"
                         icon.name: "list-add"
-                        enabled: newServerName.text.length > 0 && newServerIp.text.length > 0
+                        enabled: newServerName.text.length > 0 && newServerAddress.text.length > 0
                         onClicked: {
-                            addServer(newServerName.text, newServerIp.text)
+                            addServer(newServerName.text, newServerMethod.currentText, newServerAddress.text)
                             newServerName.text = ""
-                            newServerIp.text = ""
+                            newServerAddress.text = ""
+                            newServerMethod.currentIndex = 0
                         }
                     }
                 }
@@ -113,7 +123,7 @@ KCM.SimpleKCM {
                                     }
                                     
                                     QQC2.Label {
-                                        text: modelData.ip
+                                        text: "[" + modelData.method + "] " + modelData.address
                                         font.pixelSize: 11
                                         opacity: 0.7
                                     }
@@ -149,10 +159,25 @@ KCM.SimpleKCM {
         loadServers()
     }
     
+    onServersChanged: {
+        saveServers()
+    }
+    
     function loadServers() {
         try {
             if (cfg_serverList && cfg_serverList.length > 0) {
-                servers = JSON.parse(cfg_serverList)
+                var parsed = JSON.parse(cfg_serverList)
+                // Handle old format (ip) and new format (address)
+                var migratedServers = []
+                for (var i = 0; i < parsed.length; i++) {
+                    var server = parsed[i]
+                    migratedServers.push({
+                        name: server.name,
+                        method: server.method || "Ping",
+                        address: server.address || server.ip || ""
+                    })
+                }
+                servers = migratedServers
             } else {
                 servers = []
             }
@@ -166,20 +191,19 @@ KCM.SimpleKCM {
         serverListField.text = JSON.stringify(servers)
     }
     
-    function addServer(name, ip) {
+    function addServer(name, method, address) {
         var newServers = servers.slice()
         newServers.push({
             name: name,
-            ip: ip
+            method: method,
+            address: address
         })
         servers = newServers
-        saveServers()
     }
     
     function removeServer(index) {
         var newServers = servers.slice()
         newServers.splice(index, 1)
         servers = newServers
-        saveServers()
     }
 }

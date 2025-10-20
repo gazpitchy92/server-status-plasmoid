@@ -120,11 +120,21 @@ PlasmoidItem {
                                     Layout.fillWidth: true
                                 }
                                 
-                                Text {
-                                    text: modelData.ip
-                                    font.pixelSize: 12
-                                    color: Kirigami.Theme.disabledTextColor
-                                    Layout.fillWidth: true
+                                RowLayout {
+                                    spacing: Kirigami.Units.smallSpacing
+                                    
+                                    Text {
+                                        text: "[" + modelData.method + "]"
+                                        font.pixelSize: 10
+                                        color: Kirigami.Theme.disabledTextColor
+                                    }
+                                    
+                                    Text {
+                                        text: modelData.address
+                                        font.pixelSize: 12
+                                        color: Kirigami.Theme.disabledTextColor
+                                        Layout.fillWidth: true
+                                    }
                                 }
                             }
                             
@@ -196,16 +206,41 @@ PlasmoidItem {
         
         onNewData: function(source, data) {
             var exitCode = data["exit code"]
-            var parts = source.split(" ")
-            var serverIp = parts[parts.length - 1] // Get last element (the IP)
             
-            // Find and update the server with this IP
+            // Determine if this is a ping or curl command and extract the identifier
+            var serverIdentifier = ""
+            
+            if (source.startsWith("ping")) {
+                var parts = source.split(" ")
+                serverIdentifier = parts[parts.length - 1] // Get IP address
+            } else if (source.startsWith("curl")) {
+                // Extract URL from: curl -s -o /dev/null -w "%{http_code}" -m 5 URL
+                var urlMatch = source.match(/curl.*["']([^"']+)["']/)
+                if (urlMatch) {
+                    serverIdentifier = urlMatch[1]
+                } else {
+                    // Fallback: get last argument
+                    var curlParts = source.split(" ")
+                    serverIdentifier = curlParts[curlParts.length - 1]
+                }
+            }
+            
+            // Find and update the server with this address
             var newServers = servers.slice()
             var found = false
             
             for (var i = 0; i < newServers.length; i++) {
-                if (newServers[i].ip === serverIp) {
-                    newServers[i].status = (exitCode === 0) ? "UP" : "DOWN"
+                if (newServers[i].address === serverIdentifier) {
+                    // For HTTP/S, check both exit code and response
+                    if (newServers[i].method === "HTTP/S") {
+                        var stdout = data["stdout"] || ""
+                        var httpCode = parseInt(stdout.trim())
+                        // Success if exit code is 0 and HTTP status is 2xx or 3xx
+                        newServers[i].status = (exitCode === 0 && httpCode >= 200 && httpCode < 400) ? "UP" : "DOWN"
+                    } else {
+                        // For Ping, just check exit code
+                        newServers[i].status = (exitCode === 0) ? "UP" : "DOWN"
+                    }
                     found = true
                     break
                 }
@@ -237,15 +272,26 @@ PlasmoidItem {
     
     // Functions
     function loadServers() {
+        console.log("Loading servers from config:", configServerList)
         try {
             if (configServerList && configServerList.length > 0) {
                 var configServers = JSON.parse(configServerList)
+                console.log("Parsed servers:", JSON.stringify(configServers))
                 var newServers = []
                 
                 for (var i = 0; i < configServers.length; i++) {
+                    var server = configServers[i]
+                    console.log("Processing server:", JSON.stringify(server))
+                    // Handle both old format (ip) and new format (address)
+                    var address = server.address || server.ip || ""
+                    var method = server.method || "Ping"
+                    
+                    console.log("Server name:", server.name, "method:", method, "address:", address)
+                    
                     newServers.push({
-                        name: configServers[i].name,
-                        ip: configServers[i].ip,
+                        name: server.name,
+                        method: method,
+                        address: address,
                         status: "CHECKING..."
                     })
                 }
@@ -261,13 +307,22 @@ PlasmoidItem {
         }
     }
     
-    function checkServer(ip) {
-        executable.connectSource("ping -c 1 -W 1 " + ip)
+    function checkServer(method, address) {
+        console.log("checkServer called with method:", method, "address:", address)
+        if (method === "Ping") {
+            var cmd = "ping -c 1 -W 1 " + address
+            console.log("Executing:", cmd)
+            executable.connectSource(cmd)
+        } else if (method === "HTTP/S") {
+            var curlCmd = "curl -s -o /dev/null -w \"%{http_code}\" -m 5 '" + address + "'"
+            console.log("Executing:", curlCmd)
+            executable.connectSource(curlCmd)
+        }
     }
     
     function checkAllServers() {
         for (var i = 0; i < servers.length; i++) {
-            checkServer(servers[i].ip)
+            checkServer(servers[i].method, servers[i].address)
         }
     }
     
