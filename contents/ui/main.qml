@@ -21,7 +21,7 @@ PlasmoidItem {
     property bool showTitle: Plasmoid.configuration.showTitle
     property bool showRefreshButton: Plasmoid.configuration.showRefreshButton
     
-    // Compact representation (shows count)
+    // Compact UI
     compactRepresentation: Item {
         Column {
             anchors.centerIn: parent
@@ -43,7 +43,7 @@ PlasmoidItem {
         }
     }
     
-    // Full representation (main UI)
+    // Main UI
     fullRepresentation: Item {
         width: Kirigami.Units.gridUnit * 25
         height: Kirigami.Units.gridUnit * 20
@@ -141,7 +141,7 @@ PlasmoidItem {
                                 }
                             }
                             
-                            // Status text with fixed width
+                            // Status text
                             Text {
                                 text: modelData.status
                                 font.bold: true
@@ -192,7 +192,7 @@ PlasmoidItem {
         }
     }
     
-    // Ping timer - checks all servers at configured interval
+    // Update timer
     Timer {
         id: pingTimer
         interval: pingInterval * 1000
@@ -201,7 +201,7 @@ PlasmoidItem {
         onTriggered: checkAllServers()
     }
     
-    // DataSource for running ping commands
+    // Update status commands
     P5Support.DataSource {
         id: executable
         engine: "executable"
@@ -213,21 +213,19 @@ PlasmoidItem {
             console.log("onNewData - stdout:", data["stdout"])
             
             var exitCode = data["exit code"]
-            
-            // Determine if this is a ping or curl command and extract the identifier
             var serverIdentifier = ""
             
             if (source.startsWith("ping")) {
+                // Check for ping command
                 var parts = source.split(" ")
                 serverIdentifier = parts[parts.length - 1] // Get IP address
                 console.log("Ping command, extracted IP:", serverIdentifier)
             } else if (source.startsWith("curl")) {
-                // Extract URL from: curl -s -o /dev/null -w "%{http_code}" -m 5 URL
+                // Check for HTTPS command
                 var urlMatch = source.match(/curl.*["']([^"']+)["']/)
                 if (urlMatch) {
                     serverIdentifier = urlMatch[1]
                 } else {
-                    // Fallback: get last argument
                     var curlParts = source.split(" ")
                     serverIdentifier = curlParts[curlParts.length - 1]
                 }
@@ -240,18 +238,14 @@ PlasmoidItem {
             // Find and update the server with this address
             var newServers = servers.slice()
             var found = false
-            
             for (var i = 0; i < newServers.length; i++) {
                 console.log("Checking server", i, "address:", newServers[i].address)
                 if (newServers[i].address === serverIdentifier) {
-                    // For HTTP/S, check both exit code and response
                     if (newServers[i].method === "HTTP/S") {
                         var stdout = data["stdout"] || ""
                         var httpCode = parseInt(stdout.trim())
-                        // Success if exit code is 0 and HTTP status is 2xx or 3xx
                         newServers[i].status = (exitCode === 0 && httpCode >= 200 && httpCode < 400) ? "UP" : "DOWN"
                     } else {
-                        // For Ping, just check exit code
                         newServers[i].status = (exitCode === 0) ? "UP" : "DOWN"
                     }
                     console.log("Updated server", i, "to status:", newServers[i].status)
@@ -332,7 +326,7 @@ PlasmoidItem {
             console.log("Executing:", cmd)
             executable.connectSource(cmd)
         } else if (method === "HTTP/S") {
-            var curlCmd = "curl -s -o /dev/null -w \"%{http_code}\" -m 5 '" + address + "'"
+            var curlCmd = "curl -k -s -o /dev/null -w \"%{http_code}\" -m 5 '" + address + "'"
             console.log("Executing:", curlCmd)
             executable.connectSource(curlCmd)
         }
