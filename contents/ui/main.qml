@@ -83,10 +83,10 @@ PlasmoidItem {
 
                     delegate: Rectangle {
                         width: serverListView.width
-                        height: 60
+                        height: 61
                         color: modelData.status === "⟱ DOWN" ? Qt.darker(Kirigami.Theme.backgroundColor, 1.8) : 
                             modelData.status === "⟷ CHECKING..." ? Qt.darker(Kirigami.Theme.backgroundColor, 1.3) : 
-                            Kirigami.Theme.backgroundColor
+                            Qt.lighter(Kirigami.Theme.backgroundColor, 1.5) 
                         radius: 4
 
                         RowLayout {
